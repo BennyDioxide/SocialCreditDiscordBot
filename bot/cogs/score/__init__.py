@@ -70,7 +70,7 @@ class Score(commands.Cog):
         
         limit = 10
         data = ScoreData.get_all()
-        data = sorted(data.items(), key=lambda x: x[1], reverse=reverse)
+        data = sorted(data.items(), key=lambda x: x[1], reverse=not reverse)
         list_data = []
         embed = discord.Embed(title="排行榜", color=discord.Color.green())
         

@@ -24,7 +24,7 @@ class PageButton(discord.ui.View):
     async def previous(self, button: discord.ui.Button, interaction: discord.Interaction):
         
         if interaction.user != self.ctx.author:
-            await interaction.response.send_message("我剛剛看排行榜的時候...你偷看了吧...", ephemeral=True)
+            await interaction.response.send_message("我剛剛查排行榜的時候...你偷看了罷...", ephemeral=True)
             return
         
         embed = discord.Embed(title="排行榜", color=discord.Color.green())
@@ -46,7 +46,7 @@ class PageButton(discord.ui.View):
     async def next(self, button: discord.ui.Button, interaction: discord.Interaction):
         
         if interaction.user != self.ctx.author:
-            await interaction.response.send_message("我剛剛看排行榜的時候...你偷看了吧...", ephemeral=True)
+            await interaction.response.send_message("我剛剛查排行榜的時候...你偷看了罷...", ephemeral=True)
             return
         
         embed = discord.Embed(title="排行榜", color=discord.Color.green())
