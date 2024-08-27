@@ -7,6 +7,7 @@ from discord.ext import commands
 from ...core import ScoreData, ItemData
 from ...config import POINT_RADIO
 from ...utils.embed import EmbedMaker
+from ...utils.emoji import EmojiManager
 from ...utils.button import PageButton
 
 
@@ -224,10 +225,11 @@ class Score(commands.Cog):
         ScoreData.add_score(ctx.author.id, -score)
         ScoreData.add_score(member.id, int(round(score * 0.95)))
         
-        embed = discord.Embed(title="轉帳成功", color=discord.Color.green())
-        embed.add_field(name="持有者", value=ctx.author.mention)
-        embed.add_field(name="對象", value=member.mention)
-        embed.add_field(name="金額", value=f"{score}({round(score * 0.95)}實際到帳)")
+        embed = discord.Embed(title=EmojiManager("轉帳成功:animation_yes:"), color=discord.Color.green())
+        embed.add_field(name="持有者", value=ctx.author.mention, inline=False)
+        embed.add_field(name="對象", value=member.mention, inline=False)
+        embed.add_field(name="金額", value=f"{score}$", inline=False)
+        embed.add_field(name="手續費", value=f"{round(score * 0.05)}$", inline=False) 
         
         await ctx.respond(embed=embed)
         

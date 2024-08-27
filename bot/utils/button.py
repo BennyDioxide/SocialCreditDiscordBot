@@ -50,19 +50,16 @@ class PageButton(discord.ui.View):
             return
         
         embed = discord.Embed(title="排行榜", color=discord.Color.green())
-        limit = self.limit
         
-        if self.index + self.limit >= len(self.data) + self.limit:
+        if self.index + self.limit >= len(self.data):
             await interaction.response.send_message("已經是最後一頁了", ephemeral=True)
             return
         
-        if self.index + self.limit > len(self.data):
-            limit = len(self.data) - self.index
-        
-        self.index += limit
-        for field in self.data[self.index:self.index + limit]:
+        self.index += self.limit
+        for field in self.data[self.index:self.index + self.limit]:
             embed.add_field(**field)
             
+        log.debug(f"index: {self.index}, limit: {self.limit}, len(data): {len(self.data)}")
         
         await interaction.message.edit(embed=embed)
         await interaction.response.defer()
