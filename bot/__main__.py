@@ -1,10 +1,12 @@
-import discord
-from discord.ext import commands
 import logging
 import logging.handlers
+
+import discord
+from discord.ext import commands
 from setuptools import find_namespace_packages
 
 from bot.config import TOKEN, FILENAME
+from bot.models import db, engine
 
 
 log = logging.getLogger(FILENAME)
@@ -16,6 +18,7 @@ class DiscordBotSync(commands.Bot):
     def __init__(self, command_prefix: str=None, **options) -> None:
         super().__init__(self, intents=discord.Intents.all(), **options)
         self.command_prefix = command_prefix if commands.when_mentioned_or(command_prefix) else commands.when_mentioned_or("-")
+        
         
     def init_logger(self, debug: bool=False):
         
@@ -57,6 +60,7 @@ class DiscordBotSync(commands.Bot):
                 log.error(f"Failed to load package {cog}!", exc_info=True)
                 
         log.info("Packages loading completed!")
+        
       
     def run(self, token: str=TOKEN, debug: bool=False, **kwargs):
         
@@ -64,8 +68,10 @@ class DiscordBotSync(commands.Bot):
         self.load()
         
         super().run(token, **kwargs)
+        
 
 bot = DiscordBotSync("?")
-    
+
+
 if __name__ == "__main__":
     bot.run(debug=True)

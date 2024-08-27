@@ -4,11 +4,12 @@ import random
 import discord
 from discord.ext import commands
 
-from ...core import ScoreData, ItemData
-from ...config import POINT_RADIO
-from ...utils.embed import EmbedMaker
-from ...utils.emoji import EmojiManager
-from ...utils.button import PageButton
+from bot.core import ItemData
+from bot.models.score_data import ScoreData
+from bot.config import POINT_RADIO
+from bot.utils.embed import EmbedMaker
+from bot.utils.emoji import EmojiManager
+from bot.utils.button import PageButton
 
 
 log = logging.getLogger(__name__)
@@ -21,6 +22,8 @@ class Score(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        
+        await self.bot.wait_until_ready()
         
         if message.author.bot:
             return

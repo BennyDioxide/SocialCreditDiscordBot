@@ -6,6 +6,7 @@ from bot.cogs.main.help import Help
 from bot.utils.help import HelpCommandSettings, need_help
 from bot.utils.emoji import EmojiManager
 from bot.core import ScoreData, ItemData
+from bot.models.score_data import ScoreData
 
 
 log = logging.getLogger(__name__)

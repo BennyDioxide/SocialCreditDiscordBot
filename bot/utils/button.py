@@ -20,7 +20,7 @@ class PageButton(discord.ui.View):
         self.disable_all_items()
         
         
-    @discord.ui.button(label="上一頁", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="上一頁", style=discord.ButtonStyle.primary, custom_id="previous", disabled=True)
     async def previous(self, button: discord.ui.Button, interaction: discord.Interaction):
         
         if interaction.user != self.ctx.author:
@@ -29,20 +29,21 @@ class PageButton(discord.ui.View):
         
         embed = discord.Embed(title="排行榜", color=discord.Color.green())
         
-        if self.index - self.limit < 0:
-            await interaction.response.send_message("已經是第一頁了", ephemeral=True)
-            return
-        
         self.index -= self.limit
         for field in self.data[self.index:self.index + self.limit]:
             embed.add_field(**field)
             
-        
-        await interaction.message.edit(embed=embed)
+        if not self.index + self.limit >= len(self.data):
+            for child in self.children:
+                if child.custom_id == "next": child.disabled = True
+            
+        button.disabled = self.index - self.limit < 0
+            
+        await interaction.message.edit(embed=embed, view=self)
         await interaction.response.defer()
         
 
-    @discord.ui.button(label="下一頁", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="下一頁", style=discord.ButtonStyle.primary, custom_id="next")
     async def next(self, button: discord.ui.Button, interaction: discord.Interaction):
         
         if interaction.user != self.ctx.author:
@@ -51,15 +52,15 @@ class PageButton(discord.ui.View):
         
         embed = discord.Embed(title="排行榜", color=discord.Color.green())
         
-        if self.index + self.limit >= len(self.data):
-            await interaction.response.send_message("已經是最後一頁了", ephemeral=True)
-            return
-        
         self.index += self.limit
         for field in self.data[self.index:self.index + self.limit]:
             embed.add_field(**field)
-            
-        log.debug(f"index: {self.index}, limit: {self.limit}, len(data): {len(self.data)}")
         
-        await interaction.message.edit(embed=embed)
+        if not self.index - self.limit < 0: 
+            for child in self.children:
+                if child.custom_id == "previous": child.disabled = False
+                
+        button.disabled = self.index + self.limit >= len(self.data)
+            
+        await interaction.message.edit(embed=embed, view=self)
         await interaction.response.defer()
