@@ -7,6 +7,7 @@ from discord.ext import commands
 from ...core import ScoreData, ItemData
 from ...config import POINT_RADIO
 from ...utils.embed import EmbedMaker
+from ...utils.button import PageButton
 
 
 log = logging.getLogger(__name__)
@@ -52,7 +53,7 @@ class Score(commands.Cog):
         score = ScoreData.get_score(member.id)
         
         embed = discord.Embed(title=f"個人資料 - {member.name}", color=discord.Color.green())
-        embed.add_field(name="", value=f"訊息量: {score // POINT_RADIO}")
+        # embed.add_field(name="", value=f"訊息量: {score // POINT_RADIO}")
         embed.add_field(name="", value=f"點數: {score}")
         embed.set_thumbnail(url=member.avatar.url)
         embed.set_footer(text=f"ID: {member.id}")
@@ -65,37 +66,25 @@ class Score(commands.Cog):
         
         
     @commands.slash_command(name="排行榜", description="查詢點數排行榜")
-    async def ranklist(self, ctx: discord.ApplicationContext):
+    async def ranklist(self, ctx: discord.ApplicationContext, reverse: discord.Option(bool, name="反向", default=False, required=False)): # type: ignore
         
+        limit = 10
         data = ScoreData.get_all()
-        data = sorted(data.items(), key=lambda x: x[1], reverse=True)
-        
+        data = sorted(data.items(), key=lambda x: x[1], reverse=reverse)
+        list_data = []
         embed = discord.Embed(title="排行榜", color=discord.Color.green())
+        
         for i, (user_id, score) in enumerate(data):
             user = self.bot.get_user(int(user_id))
             if user is None: continue
-            embed.add_field(name=f"{i+1}. {user.name}", value=f"點數: *{score}*", inline=False)
-            if i == 20: break
+            if i < limit: embed.add_field(name=f"{i+1}. {user.name}", value=f"點數: *{score}*", inline=False)
+            list_data.append({
+                "name": f"{i+1}. {user.name}",
+                "value": f"點數: *{score}*", 
+                "inline": False
+            })
             
-        await ctx.respond(embed=embed)
-        
-        log.debug(f"{ctx.author.name} used ranklist command")
-        
-        
-    @commands.slash_command(name="倒數排行榜", description="查詢即將要被抓去勞改的人們")
-    async def reverse_ranklist(self, ctx: discord.ApplicationContext):
-        
-        data = ScoreData.get_all()
-        data = sorted(data.items(), key=lambda x: x[1], reverse=False)
-        
-        embed = discord.Embed(title="排行榜", color=discord.Color.green())
-        for i, (user_id, score) in enumerate(data):
-            user = self.bot.get_user(int(user_id))
-            if user is None: continue
-            embed.add_field(name=f"{i+1}. {user.name}", value=f"點數: *{score}*", inline=False)
-            if i == 20: break
-            
-        await ctx.respond(embed=embed)
+        await ctx.respond(embed=embed, view=PageButton(ctx, list_data, limit))
         
         log.debug(f"{ctx.author.name} used ranklist command")
         
@@ -193,7 +182,11 @@ class Score(commands.Cog):
     async def warning(self, ctx: discord.ApplicationContext):
 
         data = ScoreData.get_all()
-        member = random.choice([self.bot.get_user(int(user)) for user, score in data.items() if score < 100])
+        
+        if data.items() == 0:
+            member = ctx.author
+        else:
+            member = random.choice([self.bot.get_user(int(user)) for user, score in data.items() if score < 100])
         
         embed = discord.Embed(title="警告", color=discord.Color.red())
         embed.add_field(name="", value=f"{member.mention} 您的社會信用點數過低!!! \n目前點數為: {data[str(member.id)]} \n建議多發言以提升您的社會信用點數")
