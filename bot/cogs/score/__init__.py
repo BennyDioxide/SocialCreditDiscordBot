@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 
 from bot.models.data import DataStorage
-from bot.config import POINT_RADIO
+from bot.config import POINT_RADIO, POINT_LIMIT
 from bot.utils.embed import EmbedMaker
 from bot.utils.emoji import EmojiManager
 from bot.utils.button import PageButton
@@ -33,7 +33,7 @@ class Score(commands.Cog):
             
             
     @commands.slash_command(name="增加點數", description="增加成員的點數(管理員限定)")
-    async def add_score(self, ctx: discord.ApplicationContext, member: discord.Option(discord.Member, name="成員"), score: discord.Option(int, name="點數")): # type: ignore
+    async def add_score(self, ctx: discord.ApplicationContext, member: discord.Option(discord.Member, name="成員"), score: discord.Option(int, name="點數", min_value=-POINT_LIMIT, max_value=POINT_LIMIT)): # type: ignore
         
         if not ctx.author.guild_permissions.administrator:
             await ctx.respond(embed=EmbedMaker(False, "你沒有權限", color="red"))
@@ -73,11 +73,13 @@ class Score(commands.Cog):
         
         limit = 10
         data = DataStorage.score_data.get_all()
-        data = sorted(data.items(), key=lambda x: x[1], reverse=not reverse)
+        data = sorted(data, key=lambda x: x["score"], reverse=not reverse)
         list_data = []
         embed = discord.Embed(title="排行榜", color=discord.Color.green())
         
-        for i, (user_id, score) in enumerate(data):
+        for i, d in enumerate(data):
+            user_id = d["user_id"]
+            score = d["score"]
             user = self.bot.get_user(int(user_id))
             if user is None: continue
             if i < limit: embed.add_field(name=f"{i+1}. {user.name}", value=f"點數: *{score}*", inline=False)
@@ -97,6 +99,11 @@ class Score(commands.Cog):
             
         embed = discord.Embed(title="社會信用商店", color=discord.Color.green())
         
+        items = DataStorage.item_data.get_all()
+        
+        if len(items) == 0:
+            embed.add_field(name="", value="***商店空空如也~***")
+
         for i, item in enumerate(DataStorage.item_data.get_all()):
             embed.add_field(name=f'{i+1}. {item["name"]}', value=f'價格: *{item["price"]}*\n說明: *{item["description"]}*', inline=False)
         
@@ -133,9 +140,9 @@ class Score(commands.Cog):
         
     @commands.slash_command(name="新增商品", description="新增商品(管理員限定)")
     async def add_item(self, ctx: discord.ApplicationContext, 
-                       item_name: discord.Option(str, name="商品名稱"), # type: ignore
-                       price: discord.Option(str, name="價格"), # type: ignore
-                       description: discord.Option(str, name="說明")): # type: ignore
+                       item_name: discord.Option(str, name="商品名稱", max_length=64), # type: ignore
+                       price: discord.Option(str, name="價格", min_length=0, max_length=6), # type: ignore
+                       description: discord.Option(str, name="說明", max_length=256)): # type: ignore
         
         if not ctx.author.guild_permissions.administrator:
             await ctx.respond(embed=EmbedMaker(False, "你沒有權限", color="red"))
@@ -156,7 +163,7 @@ class Score(commands.Cog):
             await ctx.respond(embed=EmbedMaker(False, "價格必須為數字", color="red"))
             return
         
-        DataStorage.item_data.add_item(name=item_name, price=int(price), description=description)
+        DataStorage.item_data.add(name=item_name, price=int(price), description=description)
         
         await ctx.respond(embed=EmbedMaker(True, title=item_name, description="新增商品成功"))
         
@@ -174,11 +181,11 @@ class Score(commands.Cog):
             await ctx.respond(embed=EmbedMaker(False, "你沒有權限", color="red"))
             return
         
-        if not DataStorage.item_data.is_item_exist(item_name):
+        if not DataStorage.item_data.is_exist(name=item_name):
             await ctx.respond(embed=EmbedMaker(False, "找不到此商品", color="red"))
             return
         
-        DataStorage.item_data.remove_item(item_name)
+        DataStorage.item_data.remove(name=item_name)
         
         await ctx.respond(embed=EmbedMaker(True, description="移除商品成功"))
         
