@@ -1,24 +1,36 @@
-from sqlalchemy import Column, Integer, PickleType
+from sqlalchemy import Column, Integer, String, PickleType
 from bot.models import db
 
 
 class Character(db):
     __tablename__ = "characters"
     
+    # General
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(PickleType())
-    description = Column(PickleType())
-    price = Column(Integer)
+    name = Column(String, unique=True)
+    description = Column(String)
+    image = Column(PickleType())
+    
+    # Ability
     health = Column(Integer)
     attack = Column(Integer)
     defense = Column(Integer)
-    # Todo: 暴擊率、閃避率等等
+    critical = Column(Integer)
+    speed = Column(Integer)
     
-    image = Column(PickleType())
+    # Skill
     skill = Column(PickleType())
+    skill_description = Column(String)
     
-    def __init__():
-        pass
+    skill_2 = Column(PickleType())
+    skill_2_description = Column(String)
+    
+    ex_skill = Column(PickleType())
+    ex_skill_description = Column(String)
+    
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         
     
     def __repr__(self):

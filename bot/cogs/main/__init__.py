@@ -5,8 +5,6 @@ import logging
 from bot.cogs.main.help import Help
 from bot.utils.help import HelpCommandSettings, need_help
 from bot.utils.emoji import EmojiManager
-from bot.core import ScoreData, ItemData
-from bot.models.score_data import ScoreData
 
 
 log = logging.getLogger(__name__)
@@ -26,9 +24,6 @@ class Main(commands.Cog):
         HelpCommandSettings.set_prefix(self.bot.command_prefix)
         HelpCommandSettings.set_command_list(list(self.bot.all_commands.values()))
         self.bot.help_command = Help()
-        
-        ScoreData.init()
-        ItemData.init()
         
         log.info(f"Bot is running as {self.bot.user}!")
         
