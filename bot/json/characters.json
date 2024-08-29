@@ -1,0 +1,23 @@
+[
+    {
+        "name": "test",
+        "description": "test",
+        "image": "https://media.discordapp.net/attachments/796375045629804585/798407573535064084/kr2.gif?ex=66d149ff&is=66cff87f&hm=6173647c79985be1de30c745b921628fe5c19c4440aa33f095d0e4f67ecab9ae&",
+        "price": 1,
+
+        "health": 1,
+        "attack": 1,
+        "defense": 1,
+        "critical": 1,
+        "speed": 1,
+
+        "skill": "test_skill",
+        "skill_description": "skill_description",
+        
+        "skill_2": "test_skill_2",
+        "skill_2_description": "skill_2_description", 
+        
+        "ex_skill": "test_ex_skill",
+        "ex_skill_description": "ex_skill_description" 
+    }
+]

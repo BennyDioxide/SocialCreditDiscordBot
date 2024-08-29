@@ -4,7 +4,7 @@ import random
 import discord
 from discord.ext import commands
 
-from bot.models.data import DataStorage
+from bot.core import Core
 from bot.config import POINT_RADIO, POINT_LIMIT
 from bot.utils.embed import EmbedMaker
 from bot.utils.emoji import EmojiManager
@@ -12,7 +12,6 @@ from bot.utils.button import PageButton
 
 
 log = logging.getLogger(__name__)
-
 
 class Score(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -27,7 +26,8 @@ class Score(commands.Cog):
         if message.author.bot:
             return
         
-        DataStorage.score_data.add_score(message.author.id, POINT_RADIO)
+        Core.score.add_score(message.author.id, POINT_RADIO)
+        Core.user.add_messages(message.author.id)
     
         log.debug(f"Add score to {message.author.name}")
             
@@ -39,24 +39,25 @@ class Score(commands.Cog):
             await ctx.respond(embed=EmbedMaker(False, "你沒有權限", color="red"))
             return
         
-        DataStorage.score_data.add_score(member.id, score)
+        Core.score.add_score(member.id, score)
         
-        await ctx.respond(embed=EmbedMaker(True, description=f"{ctx.author.name}使用了大人的卡片，{member.name}的點數獲得了{score}分的{'提升' if score > 0 else '降低'}"))
+        await ctx.respond(embed=EmbedMaker(True, description=f"{ctx.author.mention}使用了大人的卡片，{member.mention}的點數獲得了{score}分的{'提升' if score > 0 else '降低'}"))
         
         log.info(f"{ctx.author.name} add {score} score to {member.name}")
         log.debug(f"{ctx.author.name} used add_score command")
         
         
     @commands.slash_command(name="查詢個人資料", description="查詢成員的點數")
-    async def score_data(self, ctx: discord.ApplicationContext, member: discord.Option(discord.Member, name="成員", default=None, required=False)): # type: ignore
+    async def score(self, ctx: discord.ApplicationContext, member: discord.Option(discord.Member, name="成員", default=None, required=False)): # type: ignore
         
         if member is None:
             member = ctx.author
         
-        score = DataStorage.score_data.get_score(member.id)
+        score = Core.score.get_score(member.id)
+        massages = Core.user.get_messages(member.id)
         
         embed = discord.Embed(title=f"個人資料 - {member.name}", color=discord.Color.green())
-        # embed.add_field(name="", value=f"訊息量: {score // POINT_RADIO}")
+        embed.add_field(name="", value=f"訊息量: {massages}")
         embed.add_field(name="", value=f"點數: {score}")
         embed.set_thumbnail(url=member.avatar.url)
         embed.set_footer(text=f"ID: {member.id}")
@@ -72,9 +73,9 @@ class Score(commands.Cog):
     async def ranklist(self, ctx: discord.ApplicationContext, reverse: discord.Option(bool, name="反向", default=False, required=False)): # type: ignore
         
         limit = 10
-        data = DataStorage.score_data.get_all()
+        data = Core.score.get_all()
         data = sorted(data, key=lambda x: x["score"], reverse=not reverse)
-        list_data = []
+        list = []
         embed = discord.Embed(title="排行榜", color=discord.Color.green())
         
         for i, d in enumerate(data):
@@ -83,13 +84,13 @@ class Score(commands.Cog):
             user = self.bot.get_user(int(user_id))
             if user is None: continue
             if i < limit: embed.add_field(name=f"{i+1}. {user.name}", value=f"點數: *{score}*", inline=False)
-            list_data.append({
+            list.append({
                 "name": f"{i+1}. {user.name}",
                 "value": f"點數: *{score}*", 
                 "inline": False
             })
             
-        await ctx.respond(embed=embed, view=PageButton(ctx, list_data, limit))
+        await ctx.respond(embed=embed, view=PageButton(ctx, list, limit))
         
         log.debug(f"{ctx.author.name} used ranklist command")
         
@@ -99,13 +100,13 @@ class Score(commands.Cog):
             
         embed = discord.Embed(title="社會信用商店", color=discord.Color.green())
         
-        items = DataStorage.item_data.get_all()
+        items = Core.item.get_all()
         
         if len(items) == 0:
             embed.add_field(name="", value="***商店空空如也~***")
 
-        for i, item in enumerate(DataStorage.item_data.get_all()):
-            embed.add_field(name=f'{i+1}. {item["name"]}', value=f'價格: *{item["price"]}*\n說明: *{item["description"]}*', inline=False)
+        for i, item in enumerate(Core.item.get_all()):
+            embed.add_field(name=f'{i+1}. {item["name"]}', value=f'價格: *{item["price"]}*\n說明: *{item["description"]}*\n類型: {item["type"]}', inline=False)
         
         await ctx.respond(embed=embed)
         
@@ -116,18 +117,25 @@ class Score(commands.Cog):
     async def buy(self, ctx: discord.ApplicationContext, item_name: discord.Option(
         str,
         name="商品名稱",  
-        autocomplete=lambda x: [discord.OptionChoice(name=item["name"], value=item["name"]) for item in DataStorage.item_data.get_all()]
+        autocomplete=lambda x: [discord.OptionChoice(name=item["name"], value=item["name"]) for item in Core.item.get_all()]
         )): # type: ignore
         
         
-        for item in DataStorage.item_data.get_all():
+        for item in Core.item.get_all():
             if item["name"] == item_name:
         
-                if DataStorage.score_data.get_score(ctx.author.id) < item["price"]:
+                if Core.score.get_score(ctx.author.id) < item["price"]:
                     await ctx.respond(embed=EmbedMaker(False, "你的點數不足", color="red"))
                     return
+                
+                if item["type"] == "character":
+                    for i in Core.user.get_items(ctx.author.id):
+                        if i["name"] == item["name"]:
+                            await ctx.respond(embed=EmbedMaker(False, "你已經擁有此物品", color="red"))
+                            return
             
-                DataStorage.score_data.add_score(ctx.author.id, -item["price"])
+                Core.score.add_score(ctx.author.id, -item["price"])
+                Core.user.add_item(ctx.author.id, item)
                 
                 await ctx.respond(embed=EmbedMaker(True, description=f'你成功購買了{item["name"]}'))
                 
@@ -163,7 +171,7 @@ class Score(commands.Cog):
             await ctx.respond(embed=EmbedMaker(False, "價格必須為數字", color="red"))
             return
         
-        DataStorage.item_data.add(name=item_name, price=int(price), description=description)
+        Core.item.add(name=item_name, price=int(price), description=description)
         
         await ctx.respond(embed=EmbedMaker(True, title=item_name, description="新增商品成功"))
         
@@ -174,18 +182,18 @@ class Score(commands.Cog):
     async def remove_item(self, ctx: discord.ApplicationContext, item_name: discord.Option(
         str,
         name="商品名稱", 
-        autocomplete=lambda x: [discord.OptionChoice(name=item["name"], value=item["name"]) for item in DataStorage.item_data.get_all()]
+        autocomplete=lambda x: [discord.OptionChoice(name=item["name"], value=item["name"]) for item in Core.item.get_all()]
         )): # type: ignore
         
         if not ctx.author.guild_permissions.administrator:
             await ctx.respond(embed=EmbedMaker(False, "你沒有權限", color="red"))
             return
         
-        if not DataStorage.item_data.is_exist(name=item_name):
+        if not Core.item.is_exist(name=item_name):
             await ctx.respond(embed=EmbedMaker(False, "找不到此商品", color="red"))
             return
         
-        DataStorage.item_data.remove(name=item_name)
+        Core.item.remove(name=item_name)
         
         await ctx.respond(embed=EmbedMaker(True, description="移除商品成功"))
         
@@ -195,7 +203,7 @@ class Score(commands.Cog):
     @commands.slash_command(name="警告", description="警告社會信用過低的人")
     async def warning(self, ctx: discord.ApplicationContext):
 
-        data = DataStorage.score_data.get_all()
+        data = Core.score.get_all()
         
         if data.items() == 0:
             member = ctx.author
@@ -217,7 +225,7 @@ class Score(commands.Cog):
         if success: value = random.randint(1, 114)
         else: value = random.randint(-114, -1)
         
-        DataStorage.score_data.add_score(ctx.author.id, value)
+        Core.score.add_score(ctx.author.id, value)
         
         embed = discord.Embed(title="搶銀行囉", color=discord.Color.green() if success else discord.Color.red())
         embed.set_image(url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTsPASopxuiwUm2auuA8WKKjFyB7Yy13oVMjQ&s")
@@ -231,12 +239,12 @@ class Score(commands.Cog):
     @commands.slash_command(name="轉帳", description="轉帳程序需酌收5%手續費")
     async def deal(self, ctx: discord.ApplicationContext, member: discord.Option(discord.Member, name="成員"), score: discord.Option(int, name="點數", min_value=1)): # type: ignore
         
-        if DataStorage.score_data.get_score(ctx.author.id) < score:
+        if Core.score.get_score(ctx.author.id) < score:
             await ctx.respond(embed=EmbedMaker(False, "你的點數不足", color="red"))
             return
         
-        DataStorage.score_data.add_score(ctx.author.id, -score)
-        DataStorage.score_data.add_score(member.id, int(round(score * 0.95)))
+        Core.score.add_score(ctx.author.id, -score)
+        Core.score.add_score(member.id, int(round(score * 0.95)))
         
         embed = discord.Embed(title=EmojiManager("轉帳成功:animation_yes:"), color=discord.Color.green())
         embed.add_field(name="持有者", value=ctx.author.mention, inline=False)
@@ -247,6 +255,33 @@ class Score(commands.Cog):
         await ctx.respond(embed=embed)
         
         log.debug(f'{ctx.author.name} transfered {score} score to {member.name}')
+        
+        
+    @commands.slash_command(name="轉帳記錄", description="查詢轉帳記錄")
+    async def deal_record(self, ctx: discord.ApplicationContext): ...
+    
+    
+    @commands.slash_command(name="物品欄", description="查詢擁有的物品")
+    async def item_list(self, ctx: discord.ApplicationContext, member: discord.Option(discord.Member, name="成員", default=None, required=False)): # type: ignore
+        
+        if member is None:
+            member = ctx.author
+        
+        items = Core.user.get_items(member.id)
+        embed = discord.Embed(title=f"{member.name}的物品欄", color=discord.Color.green())
+        
+        log.debug(items)
+        
+        if len(items) == 0:
+            embed.add_field(name="", value="***物品欄空空如也~***")
+        
+        for i, item in enumerate(items):
+            embed.add_field(name=f'{i+1}. {item["name"]}', value=f'說明: *{item["description"]}*\n數量: {item["count"]}', inline=False)
+        
+        await ctx.respond(embed=embed)
+        
+        log.debug(f'{ctx.author.name} get item list of {member.name}')
+        
 
 
 def setup(bot: commands.Bot):

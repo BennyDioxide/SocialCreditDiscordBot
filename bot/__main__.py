@@ -6,7 +6,7 @@ from discord.ext import commands
 from setuptools import find_namespace_packages
 
 from bot.config import TOKEN, FILENAME
-from bot.models.data import DataStorage
+from bot.core import Core
 
 
 log = logging.getLogger(FILENAME)
@@ -64,9 +64,8 @@ class DiscordBotSync(commands.Bot):
       
     def run(self, token: str=TOKEN, debug: bool=False, **kwargs):
         
-        DataStorage.init()
-        
         self.init_logger(debug=debug)
+        Core.init()
         self.load()
         
         super().run(token, **kwargs)

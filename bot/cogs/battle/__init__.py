@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import logging
 
-from bot.models.data import DataStorage
+from bot.core import Core
 
 log = logging.getLogger(__name__)
 
@@ -11,14 +11,14 @@ class Battle(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.slash_command(name="character", description="查看角色資訊")
+    @commands.slash_command(name="角色資訊", description="查看角色資訊")
     async def character(self, ctx: discord.ApplicationContext, name: discord.Option(
         str,
         name="角色名稱",
-        choices=[discord.OptionChoice(name=char["name"], value=char["name"]) for char in DataStorage.character_data.get_all()]
+        choices=[discord.OptionChoice(name=chr["name"], value=chr["name"]) for chr in Core.character.get_all()]
         )): # type: ignore
         
-        character = DataStorage.character_data.get_character_by_name(name)
+        character = Core.character.get(name=name)
         embed = discord.Embed(
             title=character["name"],
             description=character["description"],
@@ -32,11 +32,18 @@ class Battle(commands.Cog):
         embed.add_field(name="防禦", value=character["defense"], inline=True)
         embed.add_field(name="暴擊", value=character["critical"], inline=True)
         embed.add_field(name="速度", value=character["speed"], inline=True)
-        embed.add_field(name="技能", value=character["skill_description"], inline=False)
-        embed.add_field(name="被動技能", value=character["skill_2_description"], inline=False)
-        embed.add_field(name="EX技能", value=character["ex_skill_description"], inline=False)
+        embed.add_field(name=f"技能-{character['skill']}", value=character["skill_description"], inline=False)
+        embed.add_field(name=f"被動技能-{character['skill_2']}", value=character["skill_2_description"], inline=False)
+        embed.add_field(name=f"EX技能-{character['ex_skill']}", value=character["ex_skill_description"], inline=False)
         
         await ctx.respond(embed=embed)
+        
+        
+    @commands.slash_command(name="test", description="")
+    async def test(self, ctx: discord.ApplicationContext):
+        log.debug(Core.character.get_all())
+        
+        await ctx.respond("0", ephemeral=True)
     
             
 def setup(bot: commands.Bot):
