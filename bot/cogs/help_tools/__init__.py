@@ -13,8 +13,10 @@ log = logging.getLogger(__name__)
 
 
 class HelpTools(commands.Cog):
+    
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        
         
     @commands.command(name="register")
     @commands.has_permissions(administrator=True)
@@ -29,6 +31,7 @@ class HelpTools(commands.Cog):
         await ctx.message.reply(embed=EmbedMaker(status=True, description=f"已重新註冊以下指令:\n" + "```" + ", ".join([cmd.name for cmd in self.bot.application_commands]) + "```"))
         
         log.debug(f"{ctx.author.name}({ctx.author.id}) used {ctx.command.name}.")
+        
         
     @commands.command(name="ping")
     async def ping(self, ctx: discord.ApplicationContext): 

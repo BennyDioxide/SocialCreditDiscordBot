@@ -3,6 +3,8 @@ from discord.ext import commands
 import logging
 
 from bot.core import Core
+from bot.utils.help import comming_soon
+
 
 log = logging.getLogger(__name__)
 
@@ -36,14 +38,14 @@ class Battle(commands.Cog):
         embed.add_field(name=f"被動技能-{character['skill_2']}", value=character["skill_2_description"], inline=False)
         embed.add_field(name=f"EX技能-{character['ex_skill']}", value=character["ex_skill_description"], inline=False)
         
+        # TODO: 持有狀態 + 等級
+        
         await ctx.respond(embed=embed)
         
         
-    @commands.slash_command(name="test", description="")
-    async def test(self, ctx: discord.ApplicationContext):
-        log.debug(Core.character.get_all())
-        
-        await ctx.respond("0", ephemeral=True)
+    @commands.slash_command(name="發起戰鬥", description="Yo Battle!!!")
+    async def battle(self, ctx: discord.ApplicationContext):
+        await ctx.respond(embed=comming_soon(self.battle.name))
     
             
 def setup(bot: commands.Bot):

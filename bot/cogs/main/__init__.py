@@ -11,8 +11,10 @@ log = logging.getLogger(__name__)
 
 
 class Main(commands.Cog):
+    
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -27,14 +29,16 @@ class Main(commands.Cog):
         
         log.info(f"Bot is running as {self.bot.user}!")
         
+        
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: discord.ApplicationContext, err: discord.ApplicationCommandError):
+    async def on_command_error(self, ctx: commands.Context, err: discord.ApplicationCommandError):
         
         if isinstance(err, commands.errors.CommandNotFound):
             return
             
         await ctx.message.reply(embed=need_help(command_name=ctx.message.content, error=err), mention_author=False)
         log.error(f"{err}")
+        
             
 def setup(bot: commands.Bot):
     bot.add_cog(Main(bot))

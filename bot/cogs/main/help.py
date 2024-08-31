@@ -7,4 +7,5 @@ from bot.utils.help import HelpCommandSettings
 class Help(commands.MinimalHelpCommand):
     async def send_bot_help(self, mapping):
         destination = self.get_destination()
-        await destination.send(embed=HelpCommandSettings.help())
+        view = HelpCommandSettings.help()
+        await destination.send(embed=view.get_embed(), view=view)
