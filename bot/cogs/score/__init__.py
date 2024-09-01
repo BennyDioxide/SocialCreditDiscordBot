@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import random
 
@@ -10,7 +9,6 @@ from bot.config import POINT_RADIO, POINT_LIMIT
 from bot.utils.embed import EmbedMaker
 from bot.utils.emoji import EmojiManager
 from bot.utils.button import PageButton
-from bot.utils.help import comming_soon
 
 
 log = logging.getLogger(__name__)
@@ -136,13 +134,14 @@ class Score(commands.Cog):
         str,
         name="商品名稱",  
         autocomplete=lambda x: [discord.OptionChoice(name=item["name"], value=item["name"]) for item in Core.item.get_all()]
-        )): # type: ignore
+        ), # type: ignore
+        amount: discord.Option(int, name="數量", default=1, required=False)): # type: ignore
         
         
         for item in Core.item.get_all():
             if item["name"] == item_name:
         
-                if Core.score.get_score(ctx.author.id) < item["price"]:
+                if Core.score.get_score(ctx.author.id) < item["price"] * amount:
                     await ctx.respond(embed=EmbedMaker(False, "你的點數不足", color="red"))
                     return
                 
@@ -152,10 +151,10 @@ class Score(commands.Cog):
                             await ctx.respond(embed=EmbedMaker(False, "你已經擁有此物品", color="red"))
                             return
             
-                Core.score.add_score(ctx.author.id, -item["price"])
-                Core.user.add_item(ctx.author.id, item)
+                Core.score.add_score(ctx.author.id, -item["price"] * amount)
+                Core.user.add_item(ctx.author.id, item, amount=amount)
                 
-                await ctx.respond(embed=EmbedMaker(True, description=f'你成功購買了{item["name"]}'))
+                await ctx.respond(embed=EmbedMaker(True, description=f'你成功購買了{amount}個{item["name"]}'))
                 
                 log.debug(f'{ctx.author.name} bought {item["name"]}')
                 
@@ -283,9 +282,39 @@ class Score(commands.Cog):
         log.debug(f'{ctx.author.name} transfered {score} score to {member.name}')
         
         
-    @commands.slash_command(name="轉帳記錄", description="查詢轉帳記錄")
-    async def deal_record(self, ctx: discord.ApplicationContext):
-        await ctx.respond(embed=comming_soon(self.deal_record.name))
+    @commands.slash_command(name="使用物品", description="使用獲得的物品")
+    async def use_item(self, ctx: discord.ApplicationContext, item_name: discord.Option(
+        str,
+        name="物品名稱",
+        autocomplete=lambda x: [discord.OptionChoice(name=item["name"], value=item["name"]) for item in Core.item.get_all()],
+        ), # type: ignore
+        amount: discord.Option(int, name="數量", default=1, required=False)): # type: ignore
+        
+        user_items = Core.user.get_items(ctx.author.id)
+        if len(user_items) == 0:
+            await ctx.respond(embed=EmbedMaker(False, "你的物品欄是空的", color="red"))
+            return None
+        
+        for item in user_items:
+            if item["name"] == item_name and item["count"] >= amount:
+                
+                match item["name"]:
+                    
+                    case "林檎": 
+                        await Core.item.use_ringo(Core, ctx, amount=amount)
+                        
+                    case _:
+                        await ctx.respond(embed=EmbedMaker(False, description=f"此物品無法使用"))
+                        return None
+                    
+                Core.user.add_item(ctx.author.id, Core.item.get(name=item["name"]), -1)
+                # await ctx.respond(embed=EmbedMaker(True, description=f'你使用了{item_name}'))
+                
+                log.debug(f'{ctx.author.name} used {item_name}')
+                
+                return None
+            
+        await ctx.respond(embed=EmbedMaker(False, "你的物品數量不足"))
     
     
     @commands.slash_command(name="物品欄", description="查詢擁有的物品")

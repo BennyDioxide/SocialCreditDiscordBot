@@ -13,7 +13,7 @@ class Item(db):
     price = Column(Integer)
     type = Column(String(16))
     
-    def __init__(self, name: str, description: str, price: int, type: Literal["custom", "character", "test"]="custom"):
+    def __init__(self, name: str, description: str, price: int, type: Literal["custom", "item", "character", "test"]="custom"):
         self.name = name
         self.description = description
         self.price = price

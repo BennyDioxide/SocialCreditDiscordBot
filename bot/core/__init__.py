@@ -24,6 +24,9 @@ class Core:
         
         cls.add_characters_to_items()
         
+        cls.remaining_time = {}
+        cls.command_cooldown = {}
+        
         
     @classmethod
     def add_characters_to_items(cls) -> None:

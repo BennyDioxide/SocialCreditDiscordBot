@@ -27,14 +27,14 @@ class User(Data):
         return user.messages if user else 0
     
     
-    def add_item(self, user_id: int, item: dict) -> None:
+    def add_item(self, user_id: int, item: dict, amount: int=1) -> None:
         
         user = self.session.query(UserModel).filter_by(user_id=user_id).first()
         items: list[dict] = json.loads(user.items)
         
         for i, it in enumerate(items):
             if it["name"] == item["name"]:
-                items[i]["count"] += 1
+                items[i]["count"] += amount
                 user.items = json.dumps(items)
                 self.session.commit()
                 return None
@@ -42,7 +42,7 @@ class User(Data):
         items.append({
             "name": item["name"],
             "description": item["description"],
-            "count": 1
+            "count": amount
         })
         
         user.items = json.dumps(items)
@@ -52,7 +52,7 @@ class User(Data):
         self.session.commit()
         
         
-    def get_items(self, user_id: int) -> list[int]:
+    def get_items(self, user_id: int) -> list[dict]:
         
         user = self.session.query(UserModel).filter_by(user_id=user_id).first()
         return json.loads(user.items) if user else []

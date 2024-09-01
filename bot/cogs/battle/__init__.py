@@ -10,8 +10,10 @@ log = logging.getLogger(__name__)
 
 
 class Battle(commands.Cog):
+    
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        
 
     @commands.slash_command(name="角色資訊", description="查看角色資訊")
     async def character(self, ctx: discord.ApplicationContext, name: discord.Option(

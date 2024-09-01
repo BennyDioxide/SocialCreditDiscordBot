@@ -3,6 +3,7 @@ import discord
 
 
 class EmojiManager:
+    emojis: dict[str, discord.Emoji] = None
     
     def __new__(cls, message: str):
         return cls.translation_emoji_string(message)
@@ -15,7 +16,7 @@ class EmojiManager:
         
         for t in re.findall(pattern, message):
             t: str
-            if t.strip(":") in cls.emojis:
+            if cls.emojis is not None and t.strip(":") in cls.emojis:
                 message = message.replace(t, cls.emojis[t.strip(":")])
                 
         return message
