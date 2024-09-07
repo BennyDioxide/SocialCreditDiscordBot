@@ -233,7 +233,7 @@ class Score(commands.Cog):
         if len(users) == 0:
             member = ctx.author
         else:
-            member = self.bot.get_user([int(user["user_id"]) for user in users if user["score"] < 100]) or ctx.author
+            member = self.bot.get_user(random.choice([int(user["user_id"]) for user in users if user["score"] < 100])) or ctx.author
         
         embed = discord.Embed(title="警告", color=discord.Color.red())
         embed.add_field(name="", value=f"{member.mention} 您的社會信用點數過低!!! \n目前點數為: {Core.score.get_score(member.id)} \n建議多發言以提升您的社會信用點數")
