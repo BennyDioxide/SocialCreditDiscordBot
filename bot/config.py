@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASEDIR = os.path.dirname(__file__)
-FILENAME = os.path.dirname(__file__).split(f"\\")[-1]
+FILENAME = os.path.split(os.path.dirname(__file__))[-1]
 
 # Environment Variables
 TOKEN = os.getenv("TOKEN")
