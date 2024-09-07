@@ -84,7 +84,6 @@ class ScorePrefix(commands.Cog):
             score = d["score"]
             user = self.bot.get_user(int(user_id))
             if user is None: continue
-            if i < limit: embed.add_field(name=f"{i+1}. {user.name}", value=f"點數: *{score}*", inline=False)
             list_data.append({
                 "name": f"{i+1}. {user.name}",
                 "value": f"點數: *{score}*", 
