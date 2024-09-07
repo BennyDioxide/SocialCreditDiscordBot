@@ -128,7 +128,7 @@ class ThunderDragonScore(commands.Cog):
     @commands.command(name="work")
     async def work_prefix(self, ctx: commands.Context):
         
-        if (cd := Core.command_cooldown.get(self.work_prefix.name, {}).get(ctx.author.id) - datetime.now().timestamp()) > 0:
+        if (cd := Core.command_cooldown.get(self.work_prefix.name, {}).get(ctx.author.id, 0) - datetime.now().timestamp()) > 0:
             embed = discord.Embed(title="冷卻中", color=discord.Color.red())
             embed.add_field(name="請稍等，同志！", value=f"你已經勞動過了，請等待 {round(cd)} 秒後再試。", inline=False)
             await ctx.reply(embed=embed, mention_author=False)
