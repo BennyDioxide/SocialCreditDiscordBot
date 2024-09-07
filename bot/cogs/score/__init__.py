@@ -238,7 +238,7 @@ class Score(commands.Cog):
         embed = discord.Embed(title="警告", color=discord.Color.red())
         embed.add_field(name="", value=f"{member.mention} 您的社會信用點數過低!!! \n目前點數為: {Core.score.get_score(member.id)} \n建議多發言以提升您的社會信用點數")
         
-        await ctx.respond(embed=embed, mention_author=False)
+        await ctx.respond(embed=embed)
         
         log.debug(f'{ctx.author.name} warned {member.name}')
         
