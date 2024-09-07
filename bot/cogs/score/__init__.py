@@ -228,17 +228,17 @@ class Score(commands.Cog):
     @commands.slash_command(name="警告", description="警告社會信用過低的人")
     async def warning(self, ctx: discord.ApplicationContext):
 
-        data = Core.score.get_all()
+        users = Core.user.get_all()
         
-        if len(data) == 0:
+        if len(users) == 0:
             member = ctx.author
         else:
-            member = random.choice([self.bot.get_user(int(user)) for user, score in data.items() if score < 100])
+            member = self.bot.get_user([int(user["user_id"]) for user in users if user["score"] < 100]) or ctx.author
         
         embed = discord.Embed(title="警告", color=discord.Color.red())
-        embed.add_field(name="", value=f"{member.mention} 您的社會信用點數過低!!! \n目前點數為: {data[str(member.id)]} \n建議多發言以提升您的社會信用點數")
+        embed.add_field(name="", value=f"{member.mention} 您的社會信用點數過低!!! \n目前點數為: {Core.score.get_score(member.id)} \n建議多發言以提升您的社會信用點數")
         
-        await ctx.respond(embed=embed)
+        await ctx.reply(embed=embed, mention_author=False)
         
         log.debug(f'{ctx.author.name} warned {member.name}')
         
