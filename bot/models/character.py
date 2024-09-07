@@ -9,7 +9,6 @@ class Character(db):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, unique=True)
     description = Column(String)
-    image = Column(PickleType())
     price = Column(Integer)
     
     # Ability

@@ -28,9 +28,6 @@ class Character(Data):
             chr["skill_2_func"] = chr_skill[1]
             chr["ex_skill_func"] = chr_skill[2]
             
-            # 設定角色圖片
-            chr["image"] = get_assets(chr["name"])
-            
             self.add(**chr)
             
             log.info(f"Added character: {chr['name']}")

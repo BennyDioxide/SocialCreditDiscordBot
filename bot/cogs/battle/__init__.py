@@ -4,6 +4,7 @@ import logging
 
 from bot.core import Core
 from bot.utils.help import comming_soon
+from bot.data import get_assets
 
 
 log = logging.getLogger(__name__)
@@ -29,7 +30,7 @@ class Battle(commands.Cog):
             color=discord.Color.blurple()
         )
         
-        embed.set_thumbnail(url=character["image"])
+        embed.set_thumbnail(url=get_assets(character["name"]) or get_assets("default"))
         embed.add_field(name="價格", value=character["price"], inline=False)
         embed.add_field(name="生命", value=character["health"], inline=True)
         embed.add_field(name="攻擊", value=character["attack"], inline=True)

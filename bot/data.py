@@ -10,7 +10,7 @@ from discord.ext import commands
 log = logging.getLogger(__name__)
 
 
-def get_assets(filename: str, folder: str="character") -> discord.File:
+def get_assets(filename: str, folder: str="character") -> discord.File | None:
     
     if not filename.endswith(".png"):
         filename += ".png"
@@ -20,7 +20,7 @@ def get_assets(filename: str, folder: str="character") -> discord.File:
     if not os.path.exists(path):
         
         log.error(f"File not found: {path}")
-        return ""
+        return None
     
     image = discord.File(path, filename=filename)
     
