@@ -60,8 +60,6 @@ class PageButton(discord.ui.View):
         await interaction.message.edit(embed=embed, view=self)
         await interaction.response.defer()
         
-        log.debug(f"index: {self.index} limit: {self.limit} data: {len(self.data)}")
-        
 
     @discord.ui.button(label="下一頁", style=discord.ButtonStyle.primary, custom_id="next")
     async def next(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -83,6 +81,4 @@ class PageButton(discord.ui.View):
             
         await interaction.message.edit(embed=embed, view=self)
         await interaction.response.defer()
-        
-        log.debug(f"index: {self.index} limit: {self.limit} data: {len(self.data)}")
         

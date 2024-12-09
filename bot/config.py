@@ -11,6 +11,9 @@ FILENAME = os.path.split(os.path.dirname(__file__))[-1]
 TOKEN = os.getenv("TOKEN")
 SQL_URL = os.getenv("SQL_URL") or "sqlite:///db.sqlite3"
 
+# Bot Settings
+LOCALE = "zh-TW"
+
 # Game Settings
 POINT_RADIO = 1
 POINT_LIMIT = 2147483647

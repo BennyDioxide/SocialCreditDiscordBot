@@ -2,7 +2,7 @@ import logging
 import random
 
 import discord
-from discord.ext import commands
+from discord.ext import bridge, commands
 
 from bot.core import Core
 from bot.config import POINT_RADIO, POINT_LIMIT
@@ -32,8 +32,13 @@ class Score(commands.Cog):
         log.debug(f"Add score to {message.author.name}")
             
             
-    @commands.slash_command(name="增加點數", description="增加成員的點數(管理員限定)")
-    async def add_score(self, ctx: discord.ApplicationContext, member: discord.Option(discord.Member, name="成員"), score: discord.Option(int, name="點數", min_value=-POINT_LIMIT, max_value=POINT_LIMIT)): # type: ignore
+    @bridge.bridge_command(
+        name="addscore",
+        name_localizations={"zh-TW": "增加點數"},
+        description="add score to member(admin only)",
+        description_localizations={"zh-TW": "增加成員的點數(管理員限定)"}
+    )
+    async def add_score(self, ctx: discord.ApplicationContext, member: bridge.BridgeOption(discord.Member, name="成員"), score: bridge.BridgeOption(int, name="點數", min_value=-POINT_LIMIT, max_value=POINT_LIMIT)): # type: ignore
         
         if not ctx.author.guild_permissions.administrator:
             await ctx.respond(embed=EmbedMaker(False, "你沒有權限", color="red"))
@@ -47,8 +52,13 @@ class Score(commands.Cog):
         log.debug(f"{ctx.author.name} used add_score command")
         
         
-    @commands.slash_command(name="設定點數", description="設定成員的點數(管理員限定)")
-    async def set_score(self, ctx: discord.ApplicationContext, member: discord.Option(discord.Member, name="成員"), score: discord.Option(int, name="點數", min_value=-POINT_LIMIT, max_value=POINT_LIMIT)): # type: ignore
+    @bridge.bridge_command(
+        name="setscore",
+        name_localizations={"zh-TW": "設定點數"},
+        description="set score to member(admin only)",
+        description_localizations={"zh-TW": "設定成員的點數(管理員限定)"}
+    )
+    async def set_score(self, ctx: discord.ApplicationContext, member: bridge.BridgeOption(discord.Member, name="成員"), score: bridge.BridgeOption(int, name="點數", min_value=-POINT_LIMIT, max_value=POINT_LIMIT)): # type: ignore
         
         if not ctx.author.guild_permissions.administrator:
             await ctx.respond(embed=EmbedMaker(False, "你沒有權限", color="red"))
@@ -62,8 +72,13 @@ class Score(commands.Cog):
         log.debug(f"{ctx.author.name} used set_score command")
         
         
-    @commands.slash_command(name="查詢個人資料", description="查詢成員的點數")
-    async def show_score(self, ctx: discord.ApplicationContext, member: discord.Option(discord.Member, name="成員", default=None, required=False)): # type: ignore
+    @bridge.bridge_command(
+        name="showscore",
+        name_localizations={"zh-TW": "查詢個人資料"},
+        description="show score of member",
+        description_localizations={"zh-TW": "查詢成員的點數"}
+    )
+    async def show_score(self, ctx: discord.ApplicationContext, member: bridge.BridgeOption(discord.Member, name="成員", default=None, required=False)): # type: ignore
         
         if member is None:
             member = ctx.author
@@ -84,8 +99,13 @@ class Score(commands.Cog):
         log.debug(f"{ctx.author.name} used score command")
         
         
-    @commands.slash_command(name="排行榜", description="查詢點數排行榜")
-    async def ranklist(self, ctx: discord.ApplicationContext, reverse: discord.Option(bool, name="反向", default=False, required=False)): # type: ignore
+    @bridge.bridge_command(
+        name="rank",
+        name_localizations={"zh-TW": "排行榜"},
+        description="show score ranklist",
+        description_localizations={"zh-TW": "查詢點數排行榜"}
+    )
+    async def ranklist(self, ctx: discord.ApplicationContext, reverse: bridge.BridgeOption(bool, name="反向", default=False, required=False)): # type: ignore
         
         limit = 5
         data = Core.score.get_all()
@@ -111,7 +131,12 @@ class Score(commands.Cog):
         log.debug(f"{ctx.author.name} used ranklist command")
         
         
-    @commands.slash_command(name="社會信用商店", description="應該...都點的到")
+    @bridge.bridge_command(
+        name="shop",
+        name_localizations={"zh-TW": "社會信用商店"},
+        description="show score shop",
+        description_localizations={"zh-TW": "應該...都點的到"}
+    )
     async def shop(self, ctx: discord.ApplicationContext):
             
         embed = discord.Embed(title="社會信用商店", color=discord.Color.green())
@@ -129,13 +154,18 @@ class Score(commands.Cog):
         log.debug(f"{ctx.author.name} used shop command")
         
         
-    @commands.slash_command(name="購買", description="問就是買")
-    async def buy(self, ctx: discord.ApplicationContext, item_name: discord.Option(
+    @bridge.bridge_command(
+        name="buy",
+        name_localizations={"zh-TW": "購買"},
+        description="buy item",
+        description_localizations={"zh-TW": "問就是買"}
+    )
+    async def buy(self, ctx: discord.ApplicationContext, item_name: bridge.BridgeOption(
         str,
         name="商品名稱",  
         autocomplete=lambda x: [discord.OptionChoice(name=item["name"], value=item["name"]) for item in Core.item.get_all()]
         ), # type: ignore
-        amount: discord.Option(int, name="數量", default=1, required=False)): # type: ignore
+        amount: bridge.BridgeOption(int, name="數量", default=1, required=False)): # type: ignore
         
         
         for item in Core.item.get_all():
@@ -163,11 +193,16 @@ class Score(commands.Cog):
         await ctx.respond(embed=EmbedMaker(False, "找不到此商品", color="red"))
         
         
-    @commands.slash_command(name="新增商品", description="新增商品(管理員限定)")
+    @bridge.bridge_command(
+        name="additem",
+        name_localizations={"zh-TW": "新增商品"},
+        description="add item(admin only)",
+        description_localizations={"zh-TW": "新增商品(管理員限定)"}
+    )
     async def add_item(self, ctx: discord.ApplicationContext, 
-                       item_name: discord.Option(str, name="商品名稱", max_length=64), # type: ignore
-                       price: discord.Option(str, name="價格", min_length=0, max_length=6), # type: ignore
-                       description: discord.Option(str, name="說明", max_length=256)): # type: ignore
+                       item_name: bridge.BridgeOption(str, name="商品名稱", max_length=64), # type: ignore
+                       price: bridge.BridgeOption(str, name="價格", min_length=0, max_length=6), # type: ignore
+                       description: bridge.BridgeOption(str, name="說明", max_length=256)): # type: ignore
         
         if not ctx.author.guild_permissions.administrator:
             await ctx.respond(embed=EmbedMaker(False, "你沒有權限", color="red"))
@@ -199,13 +234,18 @@ class Score(commands.Cog):
         log.debug(f'{ctx.author.name} added item {item_name}')
         
         
-    @commands.slash_command(name="移除商品", description="移除商品(管理員限定)")
-    async def remove_item(self, ctx: discord.ApplicationContext, item_name: discord.Option(
+    @bridge.bridge_command(
+        name="removeitem",
+        name_localizations={"zh-TW": "移除商品"},
+        description="remove item(admin only)",
+        description_localizations={"zh-TW": "移除商品(管理員限定)"}
+    )
+    async def remove_item(self, ctx: discord.ApplicationContext, item_name: bridge.BridgeOption(
         str,
         name="商品名稱",
         autocomplete=lambda x: [discord.OptionChoice(name=item["name"], value=item["name"]) for item in Core.item.get_all()],
         ), # type: ignore
-        removed_from_user: discord.Option(bool, name="從使用者物品移除", default=False, required=False)): # type: ignore
+        removed_from_user: bridge.BridgeOption(bool, name="從使用者物品移除", default=False, required=False)): # type: ignore
         
         if not ctx.author.guild_permissions.administrator:
             await ctx.respond(embed=EmbedMaker(False, "你沒有權限", color="red"))
@@ -225,7 +265,12 @@ class Score(commands.Cog):
         log.debug(f'{ctx.author.name} removed item {item_name}')
         
         
-    @commands.slash_command(name="警告", description="警告社會信用過低的人")
+    @bridge.bridge_command(
+        name="warning",
+        name_localizations={"zh-TW": "警告"},
+        description="warn people with low score",
+        description_localizations={"zh-TW": "警告社會信用過低的人"}
+    )
     async def warning(self, ctx: discord.ApplicationContext):
 
         users = Core.user.get_all()
@@ -243,7 +288,12 @@ class Score(commands.Cog):
         log.debug(f'{ctx.author.name} warned {member.name}')
         
         
-    @commands.slash_command(name="shiroko", description="嘿嘿嘿")
+    @bridge.bridge_command(
+        name="shiroko",
+        name_localizations={"zh-TW": "shiroko"},
+        description="rob the bank",
+        description_localizations={"zh-TW": "嘿嘿嘿~"}
+    )
     async def shiroko(self, ctx: discord.ApplicationContext):
         
         success = random.choice([True, False])
@@ -261,8 +311,13 @@ class Score(commands.Cog):
         log.debug(f'{ctx.author.name} used shiroko command')
         
         
-    @commands.slash_command(name="轉帳", description="轉帳程序需酌收5%手續費")
-    async def transfer(self, ctx: discord.ApplicationContext, member: discord.Option(discord.Member, name="成員"), score: discord.Option(int, name="點數", min_value=1)): # type: ignore
+    @bridge.bridge_command(
+        name="transfer",
+        name_localizations={"zh-TW": "轉帳"},
+        description="a transfer fee of 5% will be charged for the transaction.",
+        description_localizations={"zh-TW": "轉帳程序需酌收5%手續費"}
+    )
+    async def transfer(self, ctx: discord.ApplicationContext, member: bridge.BridgeOption(discord.Member, name="成員"), score: bridge.BridgeOption(int, name="點數", min_value=1)): # type: ignore
         
         if Core.score.get_score(ctx.author.id) < score:
             await ctx.respond(embed=EmbedMaker(False, "你的點數不足", color="red"))
@@ -282,13 +337,18 @@ class Score(commands.Cog):
         log.debug(f'{ctx.author.name} transfered {score} score to {member.name}')
         
         
-    @commands.slash_command(name="使用物品", description="使用獲得的物品")
-    async def use_item(self, ctx: discord.ApplicationContext, item_name: discord.Option(
+    @bridge.bridge_command(
+        name="use",
+        name_localizations={"zh-TW": "使用物品"},
+        description="use the item",
+        description_localizations={"zh-TW": "使用獲得的物品"}
+    )
+    async def use_item(self, ctx: discord.ApplicationContext, item_name: bridge.BridgeOption(
         str,
         name="物品名稱",
         autocomplete=lambda x: [discord.OptionChoice(name=item["name"], value=item["name"]) for item in Core.item.get_all()],
         ), # type: ignore
-        amount: discord.Option(int, name="數量", default=1, required=False)): # type: ignore
+        amount: bridge.BridgeOption(int, name="數量", default=1, required=False)): # type: ignore
         
         user_items = Core.user.get_items(ctx.author.id)
         if len(user_items) == 0:
@@ -317,8 +377,13 @@ class Score(commands.Cog):
         await ctx.respond(embed=EmbedMaker(False, "你的物品數量不足"))
     
     
-    @commands.slash_command(name="物品欄", description="查詢擁有的物品")
-    async def item_list(self, ctx: discord.ApplicationContext, member: discord.Option(discord.Member, name="成員", default=None, required=False)): # type: ignore
+    @bridge.bridge_command(
+        name="item",
+        name_localizations={"zh-TW": "物品欄"},
+        description="show the item list",
+        description_localizations={"zh-TW": "查詢擁有的物品"}
+    )
+    async def item_list(self, ctx: discord.ApplicationContext, member: bridge.BridgeOption(discord.Member, name="成員", default=None, required=False)): # type: ignore
         
         if member is None:
             member = ctx.author

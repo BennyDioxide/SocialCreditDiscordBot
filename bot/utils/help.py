@@ -1,7 +1,7 @@
 import logging
 
 import discord
-from discord.ext import commands
+from discord.ext import bridge, commands
 
 from bot.utils.embed import EmbedMaker
 from bot.data import get_data
@@ -27,6 +27,11 @@ class HelpCommandSettings:
     @classmethod
     def set_prefix(cls, prefix: str) -> None:
         cls.prefix = prefix
+
+        
+    @classmethod
+    def set_locale(cls, locale: str) -> None:
+        cls.locale = locale
         
         
     @classmethod
@@ -38,31 +43,60 @@ class HelpCommandSettings:
         if cls.command_list is None: 
             embed.add_field(name=f"_**無法取得指令資訊**_", inline=False)
             
-        description_list = []
+        cmd_infor_list = []
+        data = []
             
         for cmd in cls.command_list:
             
-            if isinstance(cmd, discord.SlashCommand):
-                description = cmd.description_localizations or cmd.description
-                description_list.append({
-                    "name": "", 
-                    "value": f"{cmd.mention}\n _{description}_", 
-                    "inline": False
+            # log.debug(f"Command: {cmd.name}")
+            
+            if isinstance(cmd, (discord.SlashCommand, bridge.BridgeSlashCommand)):
+                
+                description = cmd.description or "No description provided"
+                
+                if cmd.description_localizations and (cls.locale in cmd.description_localizations):
+                    description = cmd.description_localizations[cls.locale]
+                    
+                cmd_infor_list.append({
+                    "name": cmd.name,
+                    "description": description,
+                    "type": "slash",
+                    "value": f"{cmd.mention}\n _{description}_",
                 })
                 
-            elif cls.prefix is not None: 
+            elif isinstance(cmd, (commands.Command, commands.HelpCommand, bridge.BridgeCommand)):
                 
+                if cls.prefix is None: 
+                    log.error("Prefix is not set")
+                    return
+                                
                 if cmd.name in prefix_commands_description:
                     description = prefix_commands_description[cmd.name]
-                    
+                         
                 else:
                     log.warning(f"Command {cmd.name} has no description")
                     description = "No description provided"
+                    
+                if isinstance(cmd, bridge.BridgeExtCommand):
+                    description = [c["description"] for c in cmd_infor_list if c["name"] == cmd.name][0]
 
-                description_list.append({
-                    "name": "", 
-                    "value": f"**{cls.prefix}{cmd.name}**\n _{description}_", 
-                    "inline": False
+                cmd_infor_list.append({
+                    "name": cmd.name,
+                    "description": description,
+                    "type": "prefix",
+                    "value": f"**{cls.prefix}{cmd.name}**\n _{description}_",
                 })
             
-        return PageButton(embed=embed, data=description_list, limit=5)
+            else:
+                log.warning(f"Command {cmd} is not supported, type: {type(cmd)}")
+                
+        cmd_infor_list = sorted(cmd_infor_list, key=lambda x: x["type"], reverse=True)
+        
+        for cmd_infor in cmd_infor_list:
+            data.append({
+                "name": "", 
+                "value": cmd_infor["value"], 
+                "inline": False
+            })
+            
+        return PageButton(embed=embed, data=data, limit=5)

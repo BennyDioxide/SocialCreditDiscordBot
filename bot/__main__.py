@@ -2,7 +2,7 @@ import logging
 import logging.handlers
 
 import discord
-from discord.ext import commands
+from discord.ext import bridge, commands
 from setuptools import find_namespace_packages
 
 from bot.config import TOKEN, FILENAME
@@ -12,7 +12,7 @@ from bot.core import Core
 log = logging.getLogger(FILENAME)
         
         
-class DiscordBotSync(commands.Bot):
+class DiscordBotSync(bridge.Bot):
     """The discord bot object."""
     
     def __init__(self, command_prefix: str=None, **options) -> None:
