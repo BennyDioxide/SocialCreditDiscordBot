@@ -4,7 +4,7 @@ import datetime
 import logging
 from setuptools import find_namespace_packages
 
-from bot.config import FILENAME
+from bot.config import BASEDIR
 from bot.utils.help import HelpCommandSettings
 from bot.utils.embed import EmbedMaker
 
@@ -50,7 +50,7 @@ class HelpTools(commands.Cog):
 
         log.info("Loading packages...")
         
-        for cog in find_namespace_packages(include=[f"{FILENAME}.cogs.*"]):
+        for cog in find_namespace_packages(include=[f"bot.cogs.*"]):
             
             if cog in self.bot.extensions:
                 try:

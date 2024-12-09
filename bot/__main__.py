@@ -1,15 +1,16 @@
 import logging
 import logging.handlers
+import os
 
 import discord
 from discord.ext import bridge, commands
 from setuptools import find_namespace_packages
 
-from bot.config import TOKEN, FILENAME
+from bot.config import TOKEN, LOG_FILENAME
 from bot.core import Core
 
 
-log = logging.getLogger(FILENAME)
+log = logging.getLogger(os.path.basename(os.path.dirname(__file__)))
         
         
 class DiscordBotSync(bridge.Bot):
@@ -30,7 +31,7 @@ class DiscordBotSync(bridge.Bot):
             log.setLevel(logging.INFO)
             
         file_handler = logging.handlers.RotatingFileHandler(
-            filename=f"{FILENAME}.log",
+            filename=LOG_FILENAME,
             encoding="utf-8",
             maxBytes=8**7, 
             backupCount=8
@@ -51,7 +52,7 @@ class DiscordBotSync(bridge.Bot):
 
         log.info("Loading packages...")
         
-        for cog in find_namespace_packages(include=[f"{FILENAME}.cogs.*"]):
+        for cog in find_namespace_packages(include=[f"{os.path.basename(os.path.dirname(__file__))}.cogs.*"]):
 
             try:
                 self.load_extension(cog)

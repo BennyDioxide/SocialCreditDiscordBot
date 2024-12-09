@@ -1,0 +1,14 @@
+{
+    "LOCALE": "zh-TW",
+    "LOG_FILENAME": "bot.log",
+    "GAME_SETTINGS": {
+        "POINT_RADIO": 1,
+        "POINT_LIMIT": 2147483647,
+        "ROB_SUCCESS_RATE": [0.5, 0.4, 0.1],
+        "RAPE_SUCCESS_RATE": [0.5, 0.5],
+        "WORK_SUCCESS_RATE": [0.3, 0.7],
+        "ROB_COOLDOWN": 2,
+        "RAPE_COOLDOWN": 15,
+        "WORK_COOLDOWN": 30
+    }
+}

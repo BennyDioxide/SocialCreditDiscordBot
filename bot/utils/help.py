@@ -48,8 +48,6 @@ class HelpCommandSettings:
             
         for cmd in cls.command_list:
             
-            # log.debug(f"Command: {cmd.name}")
-            
             if isinstance(cmd, (discord.SlashCommand, bridge.BridgeSlashCommand)):
                 
                 description = cmd.description or "No description provided"
@@ -69,16 +67,16 @@ class HelpCommandSettings:
                 if cls.prefix is None: 
                     log.error("Prefix is not set")
                     return
+                
+                if isinstance(cmd, bridge.BridgeExtCommand):
+                    description = [c["description"] for c in cmd_infor_list if c["name"] == cmd.name][0]
                                 
-                if cmd.name in prefix_commands_description:
+                elif cmd.name in prefix_commands_description:
                     description = prefix_commands_description[cmd.name]
                          
                 else:
                     log.warning(f"Command {cmd.name} has no description")
                     description = "No description provided"
-                    
-                if isinstance(cmd, bridge.BridgeExtCommand):
-                    description = [c["description"] for c in cmd_infor_list if c["name"] == cmd.name][0]
 
                 cmd_infor_list.append({
                     "name": cmd.name,
